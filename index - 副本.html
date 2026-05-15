@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>砂金 - 个人博客 | 滚动视差展示</title>
+    <style>
+        :root {
+            --gold: #c9a96e;
+            --gold-light: #e0c88a;
+            --dark: #1a1a2e;
+            --dark-card: #16213e;
+            --teal: #0f4c5c;
+            --text: #e0d5c1;
+            --text-muted: #a09480;
+            --accent: #ff6b6b;
+            --border: rgba(201, 169, 110, 0.2);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --radius: 16px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --animate-duration: 0.8s;
+            --animate-delay: 0.1s;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', 'Noto Serif SC', 'STSong', 'SimSun', 'KaiTi', serif;
+            background: var(--dark);
+            color: var(--text);
+            line-height: 1.8;
+            min-height: 100vh;
+            background-image:
+                radial-gradient(ellipse at 20% 20%, rgba(201, 169, 110, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 60%, rgba(15, 76, 92, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 100%, rgba(201, 169, 110, 0.03) 0%, transparent 40%);
+            overflow-x: hidden;
+        }
+
+        /* ===== 导航栏 ===== */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(22, 33, 62, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .navbar .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--gold);
+            letter-spacing: 2px;
+        }
+
+        .navbar .logo .icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            transition: var(--transition);
+            position: relative;
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--gold);
+            transition: var(--transition);
+        }
+        .nav-links a:hover {
+            color: var(--gold-light);
+        }
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* ===== 英雄区域 (静态首屏) ===== */
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(135deg, rgba(15, 76, 92, 0.3) 0%, transparent 50%),
+                linear-gradient(225deg, rgba(201, 169, 110, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            display: flex;
+            align-items: center;
+            gap: 4rem;
+            max-width: 1100px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .hero-img {
+            flex-shrink: 0;
+            width: 340px;
+            height: 480px;
+            border-radius: var(--radius);
+            background: var(--dark-card);
+            border: 2px solid var(--border);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .hero-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .hero-img .placeholder-label {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--gold-light);
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        .hero-text {
+            flex: 1;
+            min-width: 280px;
+            max-width: 500px;
+        }
+        .hero-text .subtitle {
+            font-size: 0.9rem;
+            letter-spacing: 4px;
+            color: var(--gold);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+        .hero-text h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #ffffff;
+            letter-spacing: 4px;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 40px rgba(201, 169, 110, 0.3);
+        }
+        .hero-text .jp-name {
+            font-size: 1rem;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            margin-bottom: 1.5rem;
+        }
+        .hero-text .tagline {
+            font-size: 1.1rem;
+            color: var(--gold-light);
+            font-style: italic;
+            border-left: 3px solid var(--gold);
+            padding-left: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .hero-text .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .hero-text .meta span {
+            background: rgba(201, 169, 110, 0.08);
+            border: 1px solid var(--border);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--gold-light);
+            letter-spacing: 1px;
+        }
+
+        /* ===== 通用滚动区块 ===== */
+        .section {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 5rem 2rem;
+            position: relative;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.2rem;
+            color: #ffffff;
+            letter-spacing: 3px;
+            margin-bottom: 4rem;
+            position: relative;
+        }
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 2px;
+            background: var(--gold);
+            margin: 1rem auto 0;
+        }
+
+        /* ===== 滚动动画核心：初始隐藏状态 ===== */
+        .reveal {
+            opacity: 0;
+            transition: all var(--animate-duration) cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transition-delay: var(--animate-delay);
+        }
+
+        /* 从左侧滑入 */
+        .reveal-left {
+            transform: translateX(-60px);
+        }
+        /* 从右侧滑入 */
+        .reveal-right {
+            transform: translateX(60px);
+        }
+        /* 从下方淡入 */
+        .reveal-up {
+            transform: translateY(50px);
+        }
+        /* 缩放淡入 (用于卡片) */
+        .reveal-scale {
+            transform: scale(0.9);
+        }
+
+        /* 激活状态：回到原位，完全显示 */
+        .reveal.active {
+            opacity: 1;
+            transform: translate(0, 0) scale(1);
+        }
+
+        /* ===== 关于卡片布局 ===== */
+        .about-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .card {
+            background: var(--dark-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            transition: var(--transition);
+        }
+        .card:hover {
+            border-color: rgba(201, 169, 110, 0.4);
+            box-shadow: 0 4px 24px rgba(201, 169, 110, 0.06);
+            transform: translateY(-4px);
+        }
+        .card h3 {
+            font-size: 1.2rem;
+            color: var(--gold);
+            margin-bottom: 1rem;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .card h3::before {
+            content: '◆';
+            font-size: 0.6rem;
+        }
+        .card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.9;
+        }
+
+        /* ===== 设定表格布局 ===== */
+        .setting-table-wrap {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .setting-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--dark-card);
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .setting-table tr {
+            border-bottom: 1px solid var(--border);
+        }
+        .setting-table tr:last-child {
+            border-bottom: none;
+        }
+        .setting-table th,
+        .setting-table td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+        }
+        .setting-table th {
+            width: 30%;
+            color: var(--gold-light);
+            font-weight: normal;
+            letter-spacing: 2px;
+            background: rgba(201, 169, 110, 0.03);
+            font-size: 0.9rem;
+        }
+        .setting-table td {
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        /* ===== 图库画廊 ===== */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .gallery-card {
+            background: var(--dark-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        .gallery-card:hover {
+            border-color: rgba(201, 169, 110, 0.5);
+            box-shadow: 0 12px 40px rgba(201, 169, 110, 0.1);
+            transform: translateY(-6px);
+        }
+        .gallery-card .img-wrapper {
+            width: 100%;
+            height: 380px;
+            background: #0a0a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .gallery-card .img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s;
+        }
+        .gallery-card:hover .img-wrapper img {
+            transform: scale(1.08);
+        }
+        .gallery-card .img-wrapper .placeholder-icon {
+            font-size: 4rem;
+            opacity: 0.3;
+            position: absolute;
+        }
+        .gallery-card .caption {
+            padding: 1.2rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-align: center;
+            background: rgba(0,0,0,0.2);
+        }
+
+        /* ===== 灯箱 ===== */
+        .lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(0, 0, 0, 0.95);
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .lightbox.active {
+            display: flex;
+        }
+        .lightbox img {
+            max-width: 90vw;
+            max-height: 85vh;
+            border-radius: 8px;
+            box-shadow: 0 16px 64px rgba(0, 0, 0, 0.6);
+        }
+        .lightbox .close-btn {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            font-size: 2.5rem;
+            color: #ffffff;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .lightbox .close-btn:hover {
+            color: var(--gold);
+        }
+
+        /* ===== 页脚 ===== */
+        .footer {
+            text-align: center;
+            padding: 4rem 2rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+        .footer a {
+            color: var(--gold-light);
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .hero-content {
+                flex-direction: column;
+                gap: 2rem;
+            }
+            .hero-img {
+                width: 260px;
+                height: 370px;
+            }
+            .hero-text h1 {
+                font-size: 2.2rem;
+            }
+            .nav-links {
+                gap: 1rem;
+            }
+            .navbar {
+                padding: 0 1rem;
+            }
+            .section {
+                padding: 3rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== 导航栏 ==================== -->
+    <nav class="navbar">
+        <div class="logo">
+            <span class="icon">♠</span>
+            <span>砂金 Aventurine</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#home">首页</a></li>
+            <li><a href="#about">关于</a></li>
+            <li><a href="#setting">设定</a></li>
+            <li><a href="#gallery">图库</a></li>
+            <li><a href="#story">背景</a></li>
+        </ul>
+    </nav>
+
+    <!-- ==================== 英雄区域（首屏静态展示） ==================== -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <div class="hero-img">
+                <!-- 请替换为本地图片路径 -->
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzQwIiBoZWlnaHQ9IjQ4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxYTFhMmU7c3RvcC1vcGFjaXR5OjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMwZjRjNWM7c3RvcC1vcGFjaXR5OjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMzQwIiBoZWlnaHQ9IjQ4MCIgZmlsbD0idXJsKCNnKSIvPjx0ZXh0IHg9IjUwJSIgeT0iNDUlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjYzlhOTZlIiBmb250LXNpemU9IjE4IiBmb250LWZhbWlseT0ic2VyaWYiIGxldHRlci1zcGFjaW5nPSI0Ij7ipqbipqYg54ix5pyo54ixIOmHkeaciemcgCDipqTipqY8L3RleHQ+PHRleHQgeD0iNTAlIiB5PSI1MiUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiNhMDk0ODAiIGZvbnQtc2l6ZT0iMTMiIGZvbnQtZmFtaWx5PSJzZXJpZiI+6K+35omL5Yqo5L2/55So6YeR5riw5rip5aSW5Zu+54mH5pu05o6lPC90ZXh0Pjx0ZXh0IHg9IjUwJSIgeT0iNTklIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjYTBhMGEwIiBmb250LXNpemU9IjExIiBmb250LWZhbWlseT0ic2VyaWYiPijngrnlh7vljbPlj6/mlLblpKfmkqQpPC90ZXh0Pjwvc3ZnPg=="
+                alt="砂金立绘">
+                <span class="placeholder-label">♢ 点击替换为高清立绘 ♢</span>
+            </div>
+            <div class="hero-text">
+                <p class="subtitle">◆ 星际和平公司 · 战略投资部 ◆</p>
+                <h1>砂 金</h1>
+                <p class="jp-name">Aventurine / アベンチュリン</p>
+                <p class="tagline">"你可以随意利用我，也可以在恰当的时机背叛我。<br>利用与背叛都是价值互换的手段。<br>但我从不做赔本买卖，也希望你…不要让我失望。"</p>
+                <div class="meta">
+                    <span>♠ 石心十人</span>
+                    <span>🎲 诡弈砂金</span>
+                    <span>🛡️ 存护·虚数</span>
+                    <span>⭐ 5星</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== 关于区域（滚动切入） ==================== -->
+    <section class="section" id="about">
+        <h2 class="section-title reveal reveal-up">角色简介</h2>
+        <div class="about-grid">
+            <!-- 卡片1：从左侧滑入 -->
+            <div class="card reveal reveal-left" style="--animate-delay: 0.1s;">
+                <h3>身份</h3>
+                <p>
+                    砂金，原名卡卡瓦夏（Kakavasha），出身于星球茨冈尼亚-IV的埃维金人。
+                    现任星际和平公司「战略投资部」高级干部，位列「石心十人」之一，
+                    基石为「诡弈砂金」。
+                </p>
+            </div>
+            <!-- 卡片2：从下方淡入 -->
+            <div class="card reveal reveal-up" style="--animate-delay: 0.25s;">
+                <h3>性格</h3>
+                <p>
+                    个性张扬的风险爱好者，时常面带笑容，真心却难以揣测。
+                    恪守「风险越大、回报越大」的人生信条，靠着同命运的博弈赢得如今的地位，
+                    将人生视作一场高风险、高回报的投资，向来游刃有余。
+                </p>
+            </div>
+            <!-- 卡片3：从右侧滑入 -->
+            <div class="card reveal reveal-right" style="--animate-delay: 0.4s;">
+                <h3>外观</h3>
+                <p>
+                    砂金是一头沙金色中长发的青年，拥有品红与青色交织的双色瞳，
+                    黑色竖瞳。颈侧有黑色印记，他称之为「商品编码」。
+                    服装以青绿、金色、黑色为主调，融合孔雀羽毛元素，
+                    大衣下摆参考孔雀尾羽设计，背部印有轮盘图案。
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== 官方设定（整表切入） ==================== -->
+    <section class="section" id="setting">
+        <h2 class="section-title reveal reveal-up">官方设定档案</h2>
+        <div class="setting-table-wrap reveal reveal-scale" style="--animate-delay: 0.15s;">
+            <table class="setting-table">
+                <tbody>
+                    <tr><th>名称</th><td>砂金</td></tr>
+                    <tr><th>英文名</th><td>Aventurine</td></tr>
+                    <tr><th>日文名</th><td>アベンチュリン</td></tr>
+                    <tr><th>原名</th><td>卡卡瓦夏（Kakavasha）</td></tr>
+                    <tr><th>别号</th><td>诡弈砂金、小孔雀、该死的赌徒、35号</td></tr>
+                    <tr><th>性别</th><td>男</td></tr>
+                    <tr><th>种族</th><td>埃维金人（Avgin）</td></tr>
+                    <tr><th>出身地区</th><td>茨冈尼亚-IV（Sigonia-IV）</td></tr>
+                    <tr><th>所属</th><td>星际和平公司「战略投资部」·「石心十人」</td></tr>
+                    <tr><th>命途</th><td>存护</td></tr>
+                    <tr><th>战斗属性</th><td>虚数</td></tr>
+                    <tr><th>稀有度</th><td>★★★★★</td></tr>
+                    <tr><th>基石</th><td>诡弈砂金</td></tr>
+                    <tr><th>实装版本</th><td>2.1「狂热奔向深渊」</td></tr>
+                    <tr><th>中文CV</th><td>杨超然</td></tr>
+                    <tr><th>日文CV</th><td>河西健吾</td></tr>
+                    <tr><th>英文CV</th><td>Camden Sutkowski</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ==================== 图库区域（逐个切入） ==================== -->
+    <section class="section" id="gallery">
+        <h2 class="section-title reveal reveal-up">立绘 & CG 展示</h2>
+        <p style="text-align:center;color:var(--text-muted);margin-bottom:2.5rem;" class="reveal reveal-up" style="--animate-delay: 0.1s;">
+            📌 图片源自官方公开素材。点击任意图片可放大。滚动时图片会从不同方向切入。
+        </p>
+        <div class="gallery-grid">
+            <!-- 图1：左侧滑入 -->
+            <div class="gallery-card reveal reveal-left" style="--animate-delay: 0.1s;" onclick="openLightbox(this.querySelector('img'))">
+                <div class="img-wrapper">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxNjIxM2U7c3RvcC1vcGFjaXR5OjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMwYTRjNWM7c3RvcC1vcGFjaXR5OjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMyMCIgZmlsbD0idXJsKCNnKSIvPjx0ZXh0IHg9IjUwJSIgeT0iNDUlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjYzlhOTZlIiBmb250LXNpemU9IjE4Ij7wn4e18J+HriDmqKrlj7Dnq4vljLcgPC90ZXh0Pjwvc3ZnPg==" alt="横版立绘">
+                    <span class="placeholder-icon">🎴</span>
+                </div>
+                <div class="caption">横版立绘 — Official Splash Art</div>
+            </div>
+            <!-- 图2：下方淡入 -->
+            <div class="gallery-card reveal reveal-up" style="--animate-delay: 0.25s;" onclick="openLightbox(this.querySelector('img'))">
+                <div class="img-wrapper">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxYTFhMmU7c3RvcC1vcGFjaXR5OjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxYzUwNjA7c3RvcC1vcGFjaXR5OjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjQwMCIgZmlsbD0idXJsKCNnKSIvPjx0ZXh0IHg9IjUwJSIgeT0iNDUlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjYzlhOTZlIiBmb250LXNpemU9IjE4Ij7wn4evIOe7lei3keeri+WMtyDwn4evPC90ZXh0Pjwvc3ZnPg==" alt="竖版立绘">
+                    <span class="placeholder-icon">🃏</span>
+                </div>
+                <div class="caption">竖版立绘 — Vertical Standee</div>
+            </div>
+            <!-- 图3：右侧滑入 -->
+            <div class="gallery-card reveal reveal-right" style="--animate-delay: 0.4s;" onclick="openLightbox(this.querySelector('img'))">
+                <div class="img-wrapper">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxYTFhMmU7c3RvcC1vcGFjaXR5OjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxYTFhMmU7c3RvcC1vcGFjaXR5OjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMyMCIgZmlsbD0idXJsKCNnKSIvPjx0ZXh0IHg9IjUwJSIgeT0iNDUlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjYzlhOTZlIiBmb250LXNpemU9IjE4Ij7wn5KnIOWFieWJjeeTgeaymyDwn5KnPC90ZXh0Pjwvc3ZnPg==" alt="光锥">
+                    <span class="placeholder-icon">💠</span>
+                </div>
+                <div class="caption">专属光锥 —「命运从未公平」</div>
+            </div>
+            <!-- 图4：缩放淡入 -->
+            <div class="gallery-card reveal reveal-scale" style="--animate-delay: 0.15s;" onclick="openLightbox(this.querySelector('img'))">
+                <div class="img-wrapper">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxNjIxM2U7c3RvcC1vcGFjaXR5OjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMwZjRjNWM7c3RvcC1vcGFjaXR5OjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMyMCIgZmlsbD0idXJsKCNnKSIvPjx0ZXh0IHg9IjUwJSIgeT0iNDUlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjYzlhOTZlIiBmb250LXNpemU9IjE4Ij7wn4yAIOWumOaWueWujue7hOWbviDwn4yAPC90ZXh0Pjwvc3ZnPg==" alt="CG插画">
+                    <span class="placeholder-icon">🎨</span>
+                </div>
+                <div class="caption">官方插画 — Illustration</div>
+            </div>
+            <!-- 图5：左侧滑入 -->
+            <div class="gallery-card reveal reveal-left" style="--animate-delay: 0.3s;" onclick="openLightbox(this.querySelector('img'))">
+                <div class="img-wrapper">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjMyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxNjIxM2U7c3RvcC1vcGFjaXR5OjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMwZjRjNWM7c3RvcC1vcGFjaXR5OjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjMyMCIgZmlsbD0idXJsKCNnKSIvPjx0ZXh

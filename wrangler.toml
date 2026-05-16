@@ -2,4 +2,4 @@ name = "aventurine"
 
 [[r2_buckets]]
 bucket_name = "my-assets"
-binding = "MY_BUCKET"
+binding = "my-assets"

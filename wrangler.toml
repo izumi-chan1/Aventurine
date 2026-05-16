@@ -2,4 +2,4 @@ name = "aventurine"
 
 [[r2_buckets]]
 bucket_name = "my-assets"
-binding = "my-assets"
+binding = "MY_ASSETS"  # ✅ 改用下划线，通常用大写

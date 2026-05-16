@@ -8,7 +8,8 @@ export async function onRequest(context) {
   }
   
   try {
-    const object = await env.my-assetsT.get(filePath);
+    // ✅ 注意：这里必须和 binding 完全一致，包括大小写
+    const object = await env.MY_ASSETS.get(filePath);
     if (!object) {
       return new Response('文件不存在', { status: 404 });
     }

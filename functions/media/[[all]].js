@@ -8,7 +8,7 @@ export async function onRequest(context) {
   }
   
   try {
-    const object = await env.MY_BUCKET.get(filePath);
+    const object = await env.my-assetsT.get(filePath);
     if (!object) {
       return new Response('文件不存在', { status: 404 });
     }
